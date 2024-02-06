@@ -897,7 +897,7 @@ public class Main {
 		
 		Display.printSimpleTable("Nom client", new ClientDAO().getById(reservation.getIdClient()).getNom(), 30);
 		Display.printSimpleTable("Prenom client", new ClientDAO().getById(reservation.getIdClient()).getPrenom(), 30);
-		Display.printSimpleTable("Montant des reservations", total+"", 30);
+		Display.printSimpleTable("Montant des reservations", total+" ", 30);
 	}
 	public static void ajouterPaiement() {
 		Display.printHeader("Ajouter un paiement");
