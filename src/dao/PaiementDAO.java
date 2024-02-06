@@ -212,7 +212,7 @@ public class PaiementDAO implements ICrud<Paiement> {
 			ps.setInt(1, id);
 			int update_rows = ps.executeUpdate();
 			if(update_rows == 0) {
-				System.out.println(""+this.getClass().getSimpleName()+" : \n "+ id + " \n n'a pu être ajoutée ou modifiée");
+				System.out.println(""+this.getClass().getSimpleName()+" : \n "+ id + " \n n'a pu être supprimé");
 			} else {
 				System.out.println(""+this.getClass().getSimpleName()+" : \n le paiement : "+ id + " \n a été supprimé");
 			}
@@ -230,7 +230,9 @@ public class PaiementDAO implements ICrud<Paiement> {
 			ps.setInt(1, id_reservation);
 			int update_rows = ps.executeUpdate();
 			if(update_rows == 0) {
-				System.out.println(""+this.getClass().getSimpleName()+" : \n aucuns paiements à supprimer pour l'id reservation: "+ id_reservation + " \n ");
+				System.out.println(""+this.getClass().getSimpleName()+" : \n le paiement n'a pu être ajoutée ou modifiée");
+			} else {
+				System.out.println(""+this.getClass().getSimpleName()+" : \n le paiement a été supprimé");
 			}
 			return update_rows;
 
@@ -242,7 +244,7 @@ public class PaiementDAO implements ICrud<Paiement> {
 	}
 	public int deleteAllByClientId(int id_client) {
 		try {
-			PreparedStatement ps = Database.connexion.prepareStatement("UPDATE Paiement SET Deleted = 1 WHERE id_reservation IN(SELECT * FROM Reservation WHERE id_client = ? AND deleted = 0)");
+			PreparedStatement ps = Database.connexion.prepareStatement("UPDATE Paiement SET Deleted = 1 WHERE id_reservation IN(SELECT id FROM Reservation WHERE id_client = ? AND deleted = 0)");
 			ps.setInt(1, id_client);
 			int update_rows = ps.executeUpdate();
 			if(update_rows == 0) {

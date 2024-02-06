@@ -85,6 +85,7 @@ public class Display {
 		return fancies + Display.centerStringContent(space, value + "") + fancies;
 	}
 	public static String printTabHeader(Field[] fields, int colWidth) {
+		//methode retournant une chaine de charactères et permet de display une entete de tableau grace aux noms de colonnes reçuent sous forme de tableau 
 		String yHeader = "";
 		String headerNames = "";
 
@@ -98,6 +99,10 @@ public class Display {
 				yHeader + ""; 		
 	}
 	public static <T> void printTableHeader(T obj, int colWidth) {
+		//@params T object
+		//@params int colWidth
+		//@return void
+		// methode d'affichage recupérant les attributs d'une classe générqiue sous forme de tableau pour les passer à printTabHeader
 		// on réucupère la classe de l'objet pour récupérer ces attributs
 		 Class<?> c = obj.getClass();
 		 Field[] fields = c.getDeclaredFields();
@@ -106,10 +111,16 @@ public class Display {
 		
 	}
 	public static <T> int countObjectFields(T obj) {
+		//@params T obj 
+		// return integer
+		// methode retounant le nombre d'attributs de la classe passé en paramètre
 		 Class<?> c = obj.getClass();
 		 return c.getDeclaredFields().length;
 	}
 	public static String printIndentation(int level) {
+		//@params int level
+		//@return String 
+		//retourne une chaine de characteres équivalennt à une tabulation, le nombre de tabulation se gère avec le level
 		int i = 0;
 		String str = "";
 		while(i < level) {
@@ -120,6 +131,10 @@ public class Display {
 	}
 	
 	public static void printSimpleTable(String key, String value, int colWidth) {
+		// @params String key
+		//@params String value
+		// @params int colWidth
+		// methode d'affichage pour une simple clé /valeur, paramétrage de la largeur de colonne avec un integer 
 		String yHeader = "";
 		String headerNames = "";
 

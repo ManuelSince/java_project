@@ -110,7 +110,7 @@ public class SocieteDAO implements ICrud<Societe>{
 	public ArrayList<Societe> rechercherSociete(String search){
 		ArrayList<Societe> list = new ArrayList<Societe>();
 		try {
-			PreparedStatement ps=Database.connexion.prepareStatement("SELECT * FROM Hotel WHERE (siret LIKE ? OR nom LIKE ? OR adresse LIKE ?) AND Deleted = 0");
+			PreparedStatement ps=Database.connexion.prepareStatement("SELECT * FROM Societe WHERE (siret LIKE ? OR nom LIKE ? OR adresse LIKE ?) AND Deleted = 0");
 			ps.setString(1, "%"+ search + "%");
 			ps.setString(2, "%"+ search + "%");
 			ps.setString(3, "%"+ search + "%");

@@ -340,7 +340,7 @@ public class Main {
 						+ "2- Modifier une Societe \r\n"
 						+ "3- Ajouter une Societe \r\n"
 						+ "4- Supprimer une Societe \r\n"
-						+ "4- Rechercher une Societe \r\n"
+						+ "5- Rechercher une Societe \r\n"
 						+ "0- Quitter"			
 			);
 			return intInput("Entrez le chiffre de l'action du menu correspondant", "menuFive", "societe");
@@ -390,45 +390,43 @@ public class Main {
 	}
 	public static void listChambres() {
 		ChambreDAO chambreDAO = new ChambreDAO();
-		ArrayList<Chambre> chambres = chambreDAO.getAll();
-		ArrayList<Hotel> hotels = new HotelDAO().getAll();
+		ArrayList<ChambreCustom> chambresCustom = new ArrayList<ChambreCustom>();
+		int colWidth = 25;
+		for (Hotel hotel : new HotelDAO().getAll()) {
+			for(Chambre chambre : chambreDAO.getByHotelId(hotel.getId())) {
+				int todayYear = new java.sql.Date(Calendar.getInstance().getTime().getTime()).toLocalDate().getYear();
+				int nbrReservationsPreviousYear = new ReservationDAO().getReservationsCountByChambre(chambre.getId(), todayYear -1);
+				int nbrReservationsCurrentYear = new ReservationDAO().getReservationsCountByChambre(chambre.getId(), todayYear);
+				chambresCustom.add(
+						new ChambreCustom(
+								chambre.getId()+"",
+								chambre.getNumero()+"",
+								chambre.getSimpleBed()+"",
+								chambre.getDoubleBed()+"",
+								chambre.getSuperficie()+"",			
+								Display.parseBooleanProperty(chambre.getSdbP()  +"", "sdbP"),
+								Display.parseBooleanProperty(chambre.getTv()+"", "tv"),
+								Display.parseBooleanProperty(chambre.getBalcon()  +"", "balcon"),
+								Display.parseBooleanProperty(chambre.getFridge() +"", "fridge") ,
+								Display.parseBooleanProperty( chambre.getBaignoire() +"", "baignoire"),
+								Display.parseBooleanProperty(chambre.getInsonorisation() +"", "insonorisation"),
+								chambre.getPrix() +"",
+								nbrReservationsCurrentYear + "",
+								nbrReservationsPreviousYear + "",
+								hotel.getNom(),
+								hotel.getAdresse(),
+								Display.parseBooleanProperty(hotel.getCategorie()+"", "categorie")
+								)
+						);
+			}
+		}
 		int res = intInput("Voulez-vous un affichage des chambres en :\nversion horizontal (1), vertical (2) ou custom (3) ?", "ternary", "reservation");
 		if(res == 1) {
-			Display.printTable(chambres, 15, "les chambres");
+			Display.printTable(chambresCustom, colWidth, "Les Chambres");
 		} else if(res == 2) {
-			Display.printTable(chambres, 25, "les chambres", "horizontal");
+			Display.printTable(chambresCustom, colWidth, "Les Chambres");
 		}else if(res == 3) {
-			int colWidth = 30;
-			ArrayList<ChambreCustom> chambresCustom = new ArrayList<ChambreCustom>();
-			for (Hotel hotel : hotels) {
-				for(Chambre chambre : chambreDAO.getByHotelId(hotel.getId())) {
-					int todayYear = new java.sql.Date(Calendar.getInstance().getTime().getTime()).toLocalDate().getYear();
-					int nbrReservationsPreviousYear = new ReservationDAO().getReservationsCountByChambre(chambre.getId(), todayYear -1);
-					int nbrReservationsCurrentYear = new ReservationDAO().getReservationsCountByChambre(chambre.getId(), todayYear);
-					chambresCustom.add(
-							new ChambreCustom(
-									chambre.getId()+"",
-									chambre.getNumero()+"",
-									chambre.getSimpleBed()+"",
-									chambre.getDoubleBed()+"",
-									chambre.getSuperficie()+"",			
-									Display.parseBooleanProperty(chambre.getSdbP()  +"", "sdbP"),
-									Display.parseBooleanProperty(chambre.getTv()+"", "tv"),
-									Display.parseBooleanProperty(chambre.getBalcon()  +"", "balcon"),
-									Display.parseBooleanProperty(chambre.getFridge() +"", "fridge") ,
-									Display.parseBooleanProperty( chambre.getBaignoire() +"", "baignoire"),
-									Display.parseBooleanProperty(chambre.getInsonorisation() +"", "insonorisation"),
-									chambre.getPrix() +"",
-									nbrReservationsCurrentYear + "",
-									nbrReservationsPreviousYear + "",
-									hotel.getNom(),
-									hotel.getAdresse(),
-									Display.parseBooleanProperty(hotel.getCategorie()+"", "categorie")
-									)
-							);
-				}
-			}
-			Display.printTable(chambresCustom, 25, "Les Chambres");
+			Display.printTable(chambresCustom, colWidth, "Les Chambres");
 		}
 	}
 	public static void listReservations() {
@@ -437,42 +435,42 @@ public class Main {
 		HotelDAO hotelDAO = new HotelDAO();
 		PaiementDAO paiementDAO = new PaiementDAO();
 		ArrayList<Reservation> reservations = new ReservationDAO().getAll();
+		int colWidth = 30;
+		ArrayList<ReservationCustom> reservationCustoms = new ArrayList<ReservationCustom>();
+		for(Reservation reservation : reservations) {
+			Client client = clientDAO.getById(reservation.getIdClient());
+			Chambre chambre = chambreDAO.getById(reservation.getIdChambre());
+			Hotel hotel = hotelDAO.getById(chambre.getIdHotel());
+			ArrayList<Paiement> paiements = paiementDAO.getAllByReservationId(reservation.getId());
+			reservationCustoms.add(new ReservationCustom(
+					reservation.getId(),
+					client.getNom(),
+					client.getPrenom(),
+					client.getVille(),
+					client.getPays(),
+					client.getEmail(),
+					hotel.getNom(),
+					hotel.getAdresse(),
+					hotel.getVille(),
+					chambre.getNumero(),
+					Display.parseBooleanProperty(chambre.getSdbP()+"", "sdbP"), 
+					Display.parseBooleanProperty(chambre.getTv()+"", "tv"),
+					Display.parseBooleanProperty(chambre.getBalcon()+"", "balcon"),
+					Display.parseBooleanProperty(chambre.getFridge()+"", "fridge"),
+					Display.parseBooleanProperty(chambre.getBaignoire()+"", "baignoire"),
+					Display.parseBooleanProperty(chambre.getInsonorisation()+"", "insonorisation"),
+					chambre.getPrix(),
+					new PaiementDAO().getSumPaidByReservationId(reservation.getId())+ " / " + chambre.getPrix(),
+					new PaiementDAO().getCountPaiementsByReservationId(reservation.getId())
+					));
+		}
 		int res = intInput("Voulez-vous un affichage des reservations en :\nversion horizontal (1), vertical (2) ou custom (3) ?", "ternary", "reservation");
 		if(res == 1) {
-			Display.printTable(reservations, 15, "les reservations");
+			Display.printTable(reservationCustoms, colWidth, "Les reservations", "");
 		} else if(res == 2) {
-			Display.printTable(reservations, 25, "les reservations", "horizontal");
+			Display.printTable(reservationCustoms, colWidth, "Les reservations", "horizontal");
 		}else if(res == 3) {
-			int colWidth = 30;
-			ArrayList<ReservationCustom> reservationCustoms = new ArrayList<ReservationCustom>();
-			for(Reservation reservation : reservations) {
-				Client client = clientDAO.getById(reservation.getIdClient());
-				Chambre chambre = chambreDAO.getById(reservation.getIdChambre());
-				Hotel hotel = hotelDAO.getById(chambre.getIdHotel());
-				ArrayList<Paiement> paiements = paiementDAO.getAllByReservationId(reservation.getId());
-				reservationCustoms.add(new ReservationCustom(
-						reservation.getId(),
-						client.getNom(),
-						client.getPrenom(),
-						client.getVille(),
-						client.getPays(),
-						client.getEmail(),
-						hotel.getNom(),
-						hotel.getAdresse(),
-						hotel.getVille(),
-						chambre.getNumero(),
-						Display.parseBooleanProperty(chambre.getSdbP()+"", "sdbP"), 
-						Display.parseBooleanProperty(chambre.getTv()+"", "tv"),
-						Display.parseBooleanProperty(chambre.getBalcon()+"", "balcon"),
-						Display.parseBooleanProperty(chambre.getFridge()+"", "fridge"),
-						Display.parseBooleanProperty(chambre.getBaignoire()+"", "baignoire"),
-						Display.parseBooleanProperty(chambre.getInsonorisation()+"", "insonorisation"),
-						chambre.getPrix(),
-						new PaiementDAO().getSumPaidByReservationId(reservation.getId())+ " / " + chambre.getPrix(),
-						new PaiementDAO().getCountPaiementsByReservationId(reservation.getId())
-						));
-			}
-			Display.printTable(reservationCustoms, 30, "Les reservations", "horizontal");
+			Display.printTable(reservationCustoms, colWidth, "Les reservations", "horizontal");
 		}
 	}
 	public static void listPaiements() {
@@ -481,39 +479,39 @@ public class Main {
 		PaiementDAO paiementDAO = new PaiementDAO();
 		ChambreDAO chambreDAO = new ChambreDAO();
 		HotelDAO hotelDAO = new HotelDAO();
+		int colWidth = 30;
+		ArrayList<PaiementCustom> customPaiements = new ArrayList<PaiementCustom>();
+		for(Paiement paiement: paiementDAO.getAll()) {	
+			Reservation reservation = reservationDAO.getById(paiement.getIdReservation());
+			Client client = clientDAO.getById(reservation.getIdClient());
+			Chambre chambre = chambreDAO.getById(reservation.getIdChambre());
+			Hotel hotel = hotelDAO.getById(chambre.getIdHotel());
+			customPaiements.add(
+					new PaiementCustom(
+							paiement.getId(),
+							paiement.getDateP()+"",
+							paiement.getMontant()+"",
+							chambre.getPrix()+"",
+							(chambre.getPrix() - paiement.getMontant()) +"",
+							paiement.getMethodeP(),	
+							chambre.getNumero(),
+							hotel.getNom(),
+							hotel.getVille(),
+							Display.parseBooleanProperty(hotel.getCategorie()+"", "categorie"),
+							client.getPrenom()+" " + client.getNom(),
+							client.getTelephone(),
+							client.getEmail()
+							)
+					);
+		}
 		
-		int colWidth = 25;
 		int res = intInput("Voulez-vous un affichage des paiements en :\nVersion horizontal (1), vertical (2) ou custom (3) ?", "ternary", "reservation");
 		if(res == 1) {
-			Display.printTable(paiementDAO.getAll(), colWidth, "les paiements");
+			Display.printTable(customPaiements, colWidth, "Les Paiements", "");
 		} else if(res == 2) {
-			Display.printTable(paiementDAO.getAll(), colWidth, "les paiements", "horizontal");
+			Display.printTable(customPaiements, colWidth, "Les Paiements", "horizontal");
 		} else if(res == 3) {
-			ArrayList<PaiementCustom> customPaiements = new ArrayList<PaiementCustom>();
-			for(Paiement paiement: paiementDAO.getAll()) {	
-				Reservation reservation = reservationDAO.getById(paiement.getIdReservation());
-				Client client = clientDAO.getById(reservation.getIdClient());
-				Chambre chambre = chambreDAO.getById(reservation.getIdChambre());
-				Hotel hotel = hotelDAO.getById(chambre.getIdHotel());
-				customPaiements.add(
-						new PaiementCustom(
-								paiement.getId(),
-								paiement.getDateP()+"",
-								paiement.getMontant()+"",
-								chambre.getPrix()+"",
-								(chambre.getPrix() - paiement.getMontant()) +"",
-								paiement.getMethodeP(),	
-								chambre.getNumero(),
-								hotel.getNom(),
-								hotel.getVille(),
-								Display.parseBooleanProperty(hotel.getCategorie()+"", "categorie"),
-								client.getPrenom()+" " + client.getNom(),
-								client.getTelephone(),
-								client.getEmail()
-								)
-						);
-			}
-			Display.printTable(customPaiements, colWidth+5, "Les Paiements", "horizontal");
+			Display.printTable(customPaiements, colWidth, "Les Paiements", "horizontal");
 		}
 	}
 	public static void listSocietes() {
@@ -521,31 +519,30 @@ public class Main {
 		HotelDAO hotelDAO = new HotelDAO();
 		ChambreDAO chambreDAO = new ChambreDAO();
 		int colWidth = 25;
-
+		ArrayList<SocieteCustom> societesCustom = new ArrayList<SocieteCustom>();
+		for(Societe societe: societeDAO.getAll()) {
+			for(Hotel hotel:hotelDAO.getAllBySocieteId(societe.getId())) {
+				societesCustom.add(
+						new SocieteCustom(
+								societe.getId()+"",
+								societe.getSiret()+"",
+								societe.getNom()+"",
+								societe.getAdresse()+"",
+								hotel.getNom()+"",
+								hotel.getAdresse()+"",
+								hotel.getVille()+"",
+								Display.parseBooleanProperty(hotel.getCategorie()+"", "categorie"),
+								chambreDAO.getRoomCountByHotelId(hotel.getId())+""
+								)
+						);
+			}
+		}
 		int res = intInput("Voulez-vous un affichage des societes en :\nVersion horizontal (1), vertical (2) ou custom (3) ?", "ternary", "reservation");
 		if(res == 1) {
-			Display.printTable(societeDAO.getAll(), colWidth, "les societés");
+			Display.printTable(societesCustom, colWidth, "les societés");
 		} else if(res == 2) {
-			Display.printTable(societeDAO.getAll(), colWidth, "les societes", "horizontal");
+			Display.printTable(societesCustom, colWidth, "les societés", "horizontal");
 		} else if(res == 3) {
-			ArrayList<SocieteCustom> societesCustom = new ArrayList<SocieteCustom>();
-			for(Societe societe: societeDAO.getAll()) {
-				for(Hotel hotel:hotelDAO.getAllBySocieteId(societe.getId())) {
-					societesCustom.add(
-							new SocieteCustom(
-									societe.getId()+"",
-									societe.getSiret()+"",
-									societe.getNom()+"",
-									societe.getAdresse()+"",
-									hotel.getNom()+"",
-									hotel.getAdresse()+"",
-									hotel.getVille()+"",
-									Display.parseBooleanProperty(hotel.getCategorie()+"", "categorie"),
-									chambreDAO.getRoomCountByHotelId(hotel.getId())+""
-									)
-							);
-				}
-			}
 			Display.printTable(societesCustom, colWidth, "les societés");
 		}
 	}
@@ -560,6 +557,7 @@ public class Main {
 			double sumPrice = reservationDAO.getSumPricesByClientId(client.getId());
 			double sumPaid = reservationDAO.getSumPaidByIdClient(client.getId());
 			double nbrNights = reservationDAO.getSumDaysSpentByIdClient(client.getId());
+			// check number of nights spent via reservation and return the id of the preferred hotel
 			int preferredHotel = reservationDAO.getPreferedHotelByIdClient(client.getId());
 			Display.print("");	
 				clientsCustom.add(new ClientCustom(
@@ -575,8 +573,8 @@ public class Main {
 						sumPrice+"",
 						sumPaid+"",
 						nbrNights+"",
-						hotelDAO.getById(preferredHotel).getNom(),
-						Display.parseBooleanProperty(hotelDAO.getById(preferredHotel).getCategorie()+"", "categorie")
+						preferredHotel != 0? hotelDAO.getById(preferredHotel).getNom(): "?",
+						preferredHotel != 0?Display.parseBooleanProperty(hotelDAO.getById(preferredHotel).getCategorie()+"", "categorie"): "?"
 						
 						));
 		}
@@ -601,6 +599,7 @@ public class Main {
 		ChambreDAO chambreDAO = new ChambreDAO();
 		SocieteDAO socDAO = new SocieteDAO();
 		ArrayList<HotelCustom> hotelsCustom = new ArrayList<HotelCustom>();
+		int colWidth = 30;
 		for(Hotel hotel :hotelDAO.getAll()) {
 			int roomNumber = chambreDAO.getRoomCountByHotelId(hotel.getId());
 			double minPrice = chambreDAO.getMinPriceByHotelId(hotel.getId());
@@ -637,17 +636,24 @@ public class Main {
 						));
 			}
 		}
-		Display.printTable(hotelsCustom, 30, "Les hotels", "horizontal");
-		Display.printHeader("Statistiques géographiques ");
-		ArrayList<String> cities = hotelDAO.getCities();
-		Display.printSimpleTable("Nombre de villes ", cities.size() + "", 30);
-		for(String city: cities) {
-			Display.printSimpleTable(city, hotelDAO.getCountByCity(city) + "", 30);
+		int res = intInput("Voulez-vous un affichage des clients en :\nVersion horizontal (1), vertical (2) ou custom (3) ?", "ternary", "reservation");
+		if(res == 1) {
+			Display.printTable(hotelsCustom, colWidth, "Les hotels", "");
+		} else if(res == 2) {
+			Display.printTable(hotelsCustom, colWidth +5, "Les hotels", "horizontal");
+		}else if(res == 3) {
+			Display.printTable(hotelsCustom, colWidth +5, "Les hotels", "horizontal");	
+			Display.printHeader("Statistiques géographiques ");
+			ArrayList<String> cities = hotelDAO.getCities();
+			Display.printSimpleTable("Nombre de villes ", cities.size() + "", 30);
+			for(String city: cities) {
+				Display.printSimpleTable(city, hotelDAO.getCountByCity(city) + "", 30);
+			}
 		}
+
 	}
 	public static void listChambreWhithStats() {
 		ChambreDAO chambreDAO = new ChambreDAO();
-		
 		int roomNumber = chambreDAO.getRoomCount();
 		double minPrice = chambreDAO.getMinPrice();
 		double maxPrice = chambreDAO.getMaxPrice();
@@ -660,7 +666,7 @@ public class Main {
 		int countFridge = chambreDAO.getCountFridge();
 		int countBaignoire = chambreDAO.getCountBaignoire();
 		int countInsonorise = chambreDAO.getCountInsonorise();
-		
+		int colWidth = 30;
 		ArrayList<ChambreCustom> chambresCustom = new ArrayList<ChambreCustom>();
 		for (Hotel hotel : new HotelDAO().getAll()) {
 			for(Chambre chambre : chambreDAO.getByHotelId(hotel.getId())) {
@@ -690,21 +696,21 @@ public class Main {
 						);
 			}
 		}
-		Display.printTable(chambresCustom, 25, "Les Chambres");
+		Display.printTable(chambresCustom, colWidth, "Les Chambres");
 		Display.print("");
-		Display.print(Display.centerStringContent(30*2, "Statistiques globales sur les chambres du reseau"));
-		Display.printSimpleTable("Nombre de chambres", roomNumber + "", 30);
-		Display.printSimpleTable("Superficie moyenne", surfaceAvg + "", 30);
-		Display.printSimpleTable("Nombre de lits simple", countSimpleBed + "", 30);
-		Display.printSimpleTable("Nombre de lits double", countDoubleBed + "", 30);
-		Display.printSimpleTable("Prix minimum", minPrice + "", 30);
-		Display.printSimpleTable("Prix max", maxPrice + "", 30);
-		Display.printSimpleTable("Chambres avec salle de bain", countSdbP + "", 30);
-		Display.printSimpleTable("Chambres avec TV plate", countTv + "", 30);
-		Display.printSimpleTable("Chambres avec balcon", countBalcon + "", 30);
-		Display.printSimpleTable("Chambres avec refrigerateur", countFridge + "", 30);
-		Display.printSimpleTable("Chambres avec baignoire", countBaignoire + "", 30);
-		Display.printSimpleTable("Chambres insonorise", countInsonorise + "", 30);
+		Display.print(Display.centerStringContent(colWidth*2, "Statistiques globales sur les chambres du reseau"));
+		Display.printSimpleTable("Nombre de chambres", roomNumber + "", colWidth);
+		Display.printSimpleTable("Superficie moyenne", surfaceAvg + "", colWidth);
+		Display.printSimpleTable("Nombre de lits simple", countSimpleBed + "", colWidth);
+		Display.printSimpleTable("Nombre de lits double", countDoubleBed + "", colWidth);
+		Display.printSimpleTable("Prix minimum", minPrice + "", colWidth);
+		Display.printSimpleTable("Prix max", maxPrice + "", colWidth);
+		Display.printSimpleTable("Chambres avec salle de bain", countSdbP + "", colWidth);
+		Display.printSimpleTable("Chambres avec TV plate", countTv + "", colWidth);
+		Display.printSimpleTable("Chambres avec balcon", countBalcon + "", colWidth);
+		Display.printSimpleTable("Chambres avec refrigerateur", countFridge + "", colWidth);
+		Display.printSimpleTable("Chambres avec baignoire", countBaignoire + "", colWidth);
+		Display.printSimpleTable("Chambres insonorise", countInsonorise + "", colWidth);
 
 	}
 	public static void listReservationsWhithStats() {
@@ -1081,7 +1087,7 @@ public class Main {
 					chambre.getSimpleBed()
 				);
 		chambre.setDoubleBed(
-				intInput("voulez vous modifier le nombre de lit double ?\n'"+ chambre.getSimpleBed() + "'\nNon (0) Oui (1)", "boolean", "chambre") == 1 ?
+				intInput("voulez vous modifier le nombre de lit double ?\n'"+ chambre.getDoubleBed() + "'\nNon (0) Oui (1)", "boolean", "chambre") == 1 ?
 					intInput("Veuillez entrer le nombre de lit simple", "quantite", "chambre"):
 					chambre.getDoubleBed()
 				);
@@ -1180,7 +1186,7 @@ public class Main {
 		}
 		Reservation reservation = reservationDAO.getById(paiement.getIdReservation());
 		
-		if(intInput("voulez vous modifier le montant du paiement ?\n'"+ paiement.getIdReservation() + "'\nNon (0) Oui (1)", "boolean", "paiement") == 1) {
+		if(intInput("voulez vous modifier le montant du paiement ?\n'"+ paiement.getMontant() + "'\nNon (0) Oui (1)", "boolean", "paiement") == 1) {
 			double sumPaid = paiementDAO.getSumPaidByReservationId(paiement.getIdReservation());
 			double resaPrice = chambreDAO.getById(reservation.getIdChambre()).getPrix();
 			double amount = 0;
@@ -1194,7 +1200,7 @@ public class Main {
 					amount
 					);
 		}
-		if(intInput("voulez vous modifier la methode de paiement ?\n'"+ paiement.getIdReservation() + "'\nNon (0) Oui (1)", "boolean", "paiement") == 1) {
+		if(intInput("voulez vous modifier la methode de paiement ?\n'"+ paiement.getMethodeP() + "'\nNon (0) Oui (1)", "boolean", "paiement") == 1) {
 			int paiementMethod = intInput("Veuillez preciser la methode de paiement :\n  1- Carte bleue \n  2- Cheque \n  3- Especes", "ternary", "paiement");
 			String abreviateMethod = "";
 			if(paiementMethod == 1) {
@@ -1206,7 +1212,7 @@ public class Main {
 			}
 			paiement.setMethodeP(abreviateMethod);
 		}
-		if(intInput("voulez vous modifier la date du paiement ?\n'"+ paiement.getIdReservation() + "'\nNon (0) Oui (1)", "boolean", "paiement") == 1) {
+		if(intInput("voulez vous modifier la date du paiement ?\n'"+ paiement.getDateP() + "'\nNon (0) Oui (1)", "boolean", "paiement") == 1) {
 			paiement.setDateP(
 					dateInput("Date du paiement")
 					);
